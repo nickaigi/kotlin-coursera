@@ -13,7 +13,7 @@ Note that for the purpose of this task, you don't need to consider 'y' as a vowe
 
 Note that any two conditions might be satisfied to make a string nice.
 For instance, `"aei"` satisfies only the conditions #1 and #2, and
-```"nn"` satisfies the conditions #1 and #3, which means both strings are nice.
+`"nn"` satisfies the conditions #1 and #3, which means both strings are nice.
 
 #### Example 1
 
