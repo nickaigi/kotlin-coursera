@@ -3,12 +3,50 @@ package taxipark
 /*
  * Task #1. Find all the drivers who performed no trips.
  */
+
+/* Svetlana's solns.
+ * I need to get better at this.
+ *
+ * Begin
+ */
+fun TaxiPark.findFakeDrivers1(): Set<Driver> =
+    allDrivers.filter { d -> trips.none { it.driver == d }}.toSet()
+
+/* in Kotlin, you can use the minus symbol directly on a Set (operator overloading)
+ * allDrivers.minus(a)
+ *
+ * can be written as
+ * allDrivers - a
+ */
+fun TaxiPark.findFakeDrivers2(): Set<Driver> =
+    allDrivers - trips.map { it.driver }
+
+fun TaxiPark.findFaithfulPassengers1(minTrips: Int): Set<Passenger> =
+    trips
+        .flatMap { it.passengers }
+        .groupBy { it }
+        .filter { it.value.size >= minTrips }
+        .map { it.key }
+        .toSet()
+
+fun TaxiPark.findFaithfulPassengers2(minTrips: Int): Set<Passenger> =
+    allPassengers
+        .partition {p ->
+            trips.sumBy { t ->
+                if (p in t.passengers) 1 else 0
+            } >= minTrips
+        }
+        .first
+        .toSet()
+
+/* End Svetlana's solns.
+ */
 fun TaxiPark.findFakeDrivers(): Set<Driver> {
     val driversWithTrips = mutableListOf<Driver>()
     for (trip in this.trips){
         driversWithTrips.add(trip.driver)
     }
-    val result = this.allDrivers.filterNot { driversWithTrips.contains(it) }
+    val result = allDrivers.filterNot { driversWithTrips.contains(it) }
     val answer = HashSet<Driver>()
     result.forEach { answer.add(it) }
     return answer
@@ -19,7 +57,7 @@ fun TaxiPark.findFakeDrivers(): Set<Driver> {
 fun TaxiPark.findFaithfulPassengers(minTrips: Int): Set<Passenger> {
     val answer = HashSet<Passenger>()
     val passengerTrips = mutableMapOf<Passenger, Int>()
-    this.allPassengers.forEach { passengerTrips[it] = 0 }
+    allPassengers.forEach { passengerTrips[it] = 0 }
     for (trip in this.trips) {
         for (passenger in trip.passengers) {
             passengerTrips[passenger] = passengerTrips[passenger]!!.plus(1)
@@ -35,7 +73,7 @@ fun TaxiPark.findFaithfulPassengers(minTrips: Int): Set<Passenger> {
 fun TaxiPark.findFrequentPassengers(driver: Driver): Set<Passenger> {
     val answer = HashSet<Passenger>()
     val passengers = mutableListOf<Passenger>()
-    val driversTrips = this.trips.filter { it.driver == driver }
+    val driversTrips = trips.filter { it.driver == driver }
     for (trip in driversTrips){
         trip.passengers.forEach { if (it in passengers ) answer.add(it) else passengers.add(it)}
     }
@@ -57,8 +95,8 @@ fun TaxiPark.findSmartPassengers(): Set<Passenger> {
     var notDiscounted: Int
 
     for (p in allPassengers){
-        discounted = this.trips.filter { p in it.passengers && it.discount != null }.count()
-        notDiscounted = this.trips.filter { p in it.passengers && it.discount == null }.count()
+        discounted = trips.filter { p in it.passengers && it.discount != null }.count()
+        notDiscounted = trips.filter { p in it.passengers && it.discount == null }.count()
         if (discounted > notDiscounted) answer.add(p)
     }
     return answer
@@ -73,7 +111,7 @@ fun TaxiPark.findTheMostFrequentTripDurationPeriod(): IntRange? {
     var durationLowerLimit: Int
     val durations = mutableMapOf<Int, Int>()
     var largestDuration = 0
-    for (trip in this.trips){
+    for (trip in trips){
         durationLowerLimit = (trip.duration / 10) * 10
         if (durationLowerLimit in durations.keys){
             durations[durationLowerLimit] = durations[durationLowerLimit]!!.plus(1)
@@ -110,16 +148,16 @@ fun TaxiPark.findTheMostFrequentTripDurationPeriod(): IntRange? {
  *  cost.
  */
 fun TaxiPark.checkParetoPrinciple(): Boolean {
-    if (this.trips.isEmpty()){
+    if (trips.isEmpty()){
         return false
     }
 
-    val totalIncome = this.trips.sumByDouble { it.cost }
+    val totalIncome = trips.sumByDouble { it.cost }
     println("-----------------------------------------------")
     println("TotalIncome: $totalIncome")
     println("-----------------------------------------------")
 
-    val totalDrivers = this.allDrivers.size
+    val totalDrivers = allDrivers.size
     println("TotalDrivers: $totalDrivers")
 
     val paretoRequiredIncome = 0.8 * totalIncome
@@ -136,7 +174,7 @@ fun TaxiPark.checkParetoPrinciple(): Boolean {
      * check that their income is at least paretoIncome
      */
     val earningsPerDriver = mutableMapOf<Driver, Double>()
-    for(trip in this.trips){
+    for(trip in trips){
         if (trip.driver in earningsPerDriver.keys){
             earningsPerDriver[trip.driver] = earningsPerDriver[trip.driver]!!.plus(trip.cost)
         } else {
