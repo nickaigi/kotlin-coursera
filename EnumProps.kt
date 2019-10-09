@@ -6,7 +6,7 @@ enum class Color(
 }
 
 
-fun main(args: Array<String>) {
+fun main() {
     println(Color.BLUE.r)
     println(Color.BLUE.rgb())
 }
