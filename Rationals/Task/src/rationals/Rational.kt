@@ -1,8 +1,6 @@
 package rationals
 
-import java.lang.IllegalArgumentException
 import java.math.BigInteger
-import javax.print.attribute.standard.MediaSize
 
 open class Rational(numerator: BigInteger, denominator: BigInteger = BigInteger.ONE): Comparable<Rational>{
 
@@ -24,46 +22,61 @@ open class Rational(numerator: BigInteger, denominator: BigInteger = BigInteger.
         }
     }
 
-    override fun compareTo(other: Rational): Int = n.times(other.d).compareTo(other.n.times(d))
+    override fun compareTo(other: Rational): Int {
+        val ratio = n.toFloat() / d.toFloat()
+        val numberRatio = other.n.toFloat() / other.d.toFloat()
+        if (ratio > numberRatio) {
+            return 1
+        } else if (ratio == numberRatio) {
+            return 0
+        }
+        return -1
+    }
+
+    /* must implement equals - this fucking section took me 1.5 hrs to know that I needed an equals()*/
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+
+        other as Rational
+
+        val thisN = simplifyFraction(this)
+        val otherN = simplifyFraction(other)
+
+        return thisN.n.toDouble().div(thisN.d.toDouble()) == (otherN.n.toDouble().div(otherN.d.toDouble()))
+    }
 }
 
 fun Number.toBigInteger() = BigInteger(this.toString())
 
 infix fun Int.divBy(denominator: Int): Rational {
-    if (denominator == 0) {
-        throw IllegalArgumentException()
-    }
+    require(denominator != 0)
 
     return Rational(this.toBigInteger(), denominator.toBigInteger())
 }
 
 infix fun Long.divBy(denominator: Long): Rational {
-    if (denominator == 0L) {
-        throw Exception("denominator 0 not allowed")
-    }
+    require(denominator != 0L)
     return Rational(this.toBigInteger(), denominator.toBigInteger())
 }
 
 infix fun BigInteger.divBy(denominator: BigInteger): Rational {
-    if (denominator == 0.toBigInteger()) {
-        throw Exception("denominator 0 not allowed")
-    }
+    require(denominator != 0.toBigInteger())
     return Rational(this.toBigInteger(), denominator.toBigInteger())
 }
 
 operator fun Rational.div(other: Rational): Rational {
-    val n = this.n * other.d
-    val d = this.d * other.n
+    val n = n * other.d
+    val d = d * other.n
     return Rational(n, d)
 }
 
 operator fun Rational.times(other: Rational): Rational {
-    val n = this.n * other.n
-    val d = this.d * other.d
+    val n = n * other.n
+    val d = d * other.d
     return Rational(n, d)
 }
 
-operator fun Rational.minus(other: Rational): Rational {
+/*operator fun Rational.minus(other: Rational): Rational {
     val d1 = d
     val d2 = other.d
     val gcd = d2.toBigInteger().gcd(d1.toBigInteger())
@@ -71,7 +84,12 @@ operator fun Rational.minus(other: Rational): Rational {
     val n = (gcd / n.toBigInteger()) - (gcd / other.n.toBigInteger())
     return Rational(n, gcd)
 }
-
+*/
+operator fun Rational.minus(other: Rational) : Rational{
+    val gcm = d * other.d
+    val numerator = (gcm / d) * n - (gcm / other.d) * other.n
+    return Rational(numerator, gcm)
+}
 /*operator fun Rational.plus(other: Rational): Rational {
     val d1 = d
     val d2 = other.d
